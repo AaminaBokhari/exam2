@@ -3,85 +3,79 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
 import { UserRole } from '../types';
+import crypto from 'crypto';
 
 export class AuthController {
-  static async register(req: Request, res: Response) {
-    try {
-      const { email, password, role, name, phoneNumber } = req.body;
+  // ... existing methods ...
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
+  static async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({
-        email,
-        password: hashedPassword,
-        role,
-        name,
-        phoneNumber
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+      user.resetToken = resetToken;
+      user.resetTokenExpiry = resetTokenExpiry;
+      await user.save();
+
+      // TODO: Send email with reset token
+      
+      res.status(200).json({ message: 'Password reset instructions sent' });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response) {
+    try {
+      const { token, newPassword } = req.body;
+      
+      const user = await User.findOne({
+        resetToken: token,
+        resetTokenExpiry: { $gt: Date.now() }
       });
 
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      user.resetToken = undefined;
+      user.resetTokenExpiry = undefined;
       await user.save();
-      res.status(201).json({ message: 'User registered successfully' });
+
+      res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }
   }
 
-  static async login(req: Request, res: Response) {
+  static async verifyEmail(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
-
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid credentials' });
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Invalid credentials' });
-      }
-
-      const token = jwt.sign(
-        { userId: user._id, role: user.role },
-        process.env.JWT_SECRET || 'secret',
-        { expiresIn: '24h' }
-      );
-
-      res.json({ token });
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
-  }
-
-  static async getProfile(req: Request, res: Response) {
-    try {
-      const user = await User.findById(req.user.userId).select('-password');
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-    }
-  }
-
-  static async updateProfile(req: Request, res: Response) {
-    try {
-      const { name, phoneNumber } = req.body;
-      const user = await User.findByIdAndUpdate(
-        req.user.userId,
-        { name, phoneNumber },
-        { new: true }
-      ).select('-password');
+      const { token } = req.params;
+      
+      const user = await User.findOne({
+        verificationToken: token,
+        verificationTokenExpiry: { $gt: Date.now() }
+      });
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(400).json({ message: 'Invalid or expired token' });
       }
 
-      res.json(user);
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpiry = undefined;
+      await user.save();
+
+      res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }

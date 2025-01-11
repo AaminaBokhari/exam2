@@ -1,0 +1,212 @@
+@baseUrl = http://localhost:3000/api
+@authToken = {{login.response.body.token}}
+
+### Auth Routes
+
+### Register new user (Donor)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "email": "donor@example.com",
+    "password": "password123",
+    "role": "Donor",
+    "name": "John Donor",
+    "phoneNumber": "1234567890"
+}
+
+### Register new user (Recipient)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "email": "recipient@example.com",
+    "password": "password123",
+    "role": "Recipient",
+    "name": "Jane Recipient",
+    "phoneNumber": "0987654321"
+}
+
+### Register new user (Staff)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "email": "staff@example.com",
+    "password": "password123",
+    "role": "Staff",
+    "name": "Admin Staff",
+    "phoneNumber": "5555555555"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "donor@example.com",
+    "password": "password123"
+}
+
+### View Profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}
+
+### Update Profile
+PATCH {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Updated Name",
+    "phoneNumber": "9999999999"
+}
+
+### Forgot Password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+    "email": "donor@example.com"
+}
+
+### Reset Password
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+    "token": "your-reset-token",
+    "newPassword": "newpassword123"
+}
+
+### Verify Email
+GET {{baseUrl}}/auth/verify-email/your-verification-token
+
+### Donor Routes
+
+### Record Donation
+POST {{baseUrl}}/donors/donations
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "bloodType": "A+",
+    "units": 1,
+    "healthCheck": {
+        "hemoglobin": 14,
+        "bloodPressure": "120/80",
+        "weight": 70,
+        "temperature": 36.8,
+        "lastMeal": "2023-11-15T08:00:00Z"
+    }
+}
+
+### View Donation History
+GET {{baseUrl}}/donors/donations
+Authorization: Bearer {{authToken}}
+
+### Check Eligibility
+GET {{baseUrl}}/donors/eligibility
+Authorization: Bearer {{authToken}}
+
+### Schedule Donation
+POST {{baseUrl}}/donors/schedule
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "appointmentDate": "2023-12-01T10:00:00Z",
+    "bloodCenter": "Central Blood Bank"
+}
+
+### Get Donation Certificate
+GET {{baseUrl}}/donors/certificates/donation-id
+Authorization: Bearer {{authToken}}
+
+### Update Health Status
+PATCH {{baseUrl}}/donors/health-status
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "healthStatus": "Eligible"
+}
+
+### Recipient Routes
+
+### Create Blood Request
+POST {{baseUrl}}/recipients/requests
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "bloodType": "A+",
+    "units": 2,
+    "urgency": "Normal",
+    "hospitalName": "City Hospital",
+    "diagnosisDetails": "Scheduled surgery",
+    "requiredDate": "2023-12-05T00:00:00Z"
+}
+
+### View Request History
+GET {{baseUrl}}/recipients/requests
+Authorization: Bearer {{authToken}}
+
+### Update Request Urgency
+PATCH {{baseUrl}}/recipients/requests/request-id/urgency
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "urgency": "Urgent"
+}
+
+### Cancel Request
+PATCH {{baseUrl}}/recipients/requests/request-id/cancel
+Authorization: Bearer {{authToken}}
+
+### Blood Bank (Staff) Routes
+
+### View Blood Inventory
+GET {{baseUrl}}/blood-bank/inventory
+Authorization: Bearer {{authToken}}
+
+### Add to Blood Inventory
+POST {{baseUrl}}/blood-bank/inventory
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "bloodType": "A+",
+    "units": 2,
+    "donorId": "donor-id"
+}
+
+### View All Requests
+GET {{baseUrl}}/blood-bank/requests
+Authorization: Bearer {{authToken}}
+
+### Process Blood Request
+PATCH {{baseUrl}}/blood-bank/requests/request-id
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "status": "Approved",
+    "bloodId": "blood-unit-id"
+}
+
+### Get Donor History (Staff)
+GET {{baseUrl}}/blood-bank/donors/donor-id/history
+Authorization: Bearer {{authToken}}
+
+### Schedule Donor Appointment (Staff)
+POST {{baseUrl}}/blood-bank/donors/donor-id/schedule
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "appointmentDate": "2023-12-01T10:00:00Z",
+    "bloodCenter": "Central Blood Bank"
+}

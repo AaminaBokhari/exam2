@@ -1,20 +1,21 @@
-export interface IBloodRequest {
-  recipientId: string;
-  bloodType: string;
-  units: number;
-  urgency: 'Normal' | 'Urgent' | 'Critical';
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Completed';
-  hospitalName: string;
-  diagnosisDetails: string;
-  requiredDate: Date;
+export interface IUser {
+  email: string;
+  password: string;
+  role: UserRole;
+  name: string;
+  phoneNumber: string;
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpiry?: Date;
+  resetToken?: string;
+  resetTokenExpiry?: Date;
   createdAt: Date;
 }
 
-export interface IRecipient {
-  userId: string;
-  bloodType: string;
-  diagnosisId: string;
-  hospitalName: string;
-  emergencyCount: number;
-  createdAt: Date;
+export enum UserRole {
+  DONOR = 'Donor',
+  RECIPIENT = 'Recipient',
+  STAFF = 'Staff'
 }
+
+// ... rest of the types ...

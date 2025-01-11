@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema<IUser>({
   name: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
+  verificationToken: String,
+  verificationTokenExpiry: Date,
+  resetToken: String,
+  resetTokenExpiry: Date,
   createdAt: { type: Date, default: Date.now }
 });
 
